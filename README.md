@@ -60,12 +60,12 @@ atlas/
 
 ## Tech Stack
 
-| Layer      | Technology              | Hosting         | Cost  |
-|------------|-------------------------|-----------------|-------|
-| Frontend   | HTML, CSS, JavaScript   | GitHub Pages    | Free  |
-| Backend    | FastAPI (Python)        | Render          | Free  |
-| Database   | Supabase (PostgreSQL)   | Supabase Cloud  | Free  |
-| AI (EDEN)  | Groq API + Llama 3      | Via Render      | Free  |
+| Layer      | Technology              | Hosting         | 
+|------------|-------------------------|-----------------|
+| Frontend   | HTML, CSS, JavaScript   | GitHub Pages    | 
+| Backend    | FastAPI (Python)        | Render          | 
+| Database   | Supabase (PostgreSQL)   | Supabase Cloud  | 
+| AI (EDEN)  | Groq API + Llama 3      | Via Render      | 
 
 ---
 
