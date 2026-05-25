@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dev Portfolio — Task Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --surface3: #222232;
+    --border: #2a2a3a;
+    --border2: #3a3a50;
+    --accent: #7c6ef5;
+    --accent2: #5b4fd4;
+    --accent-glow: rgba(124,110,245,0.15);
+    --green: #3fcf8e;
+    --green-dim: rgba(63,207,142,0.12);
+    --amber: #f59e0b;
+    --amber-dim: rgba(245,158,11,0.12);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.12);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96,165,250,0.12);
+    --text: #e8e8f0;
+    --text2: #9898b0;
+    --text3: #5a5a72;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID LINES BG */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* LAYOUT */
+  .shell {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    padding: 2rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
+  .logo span { color: var(--text3); }
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none; background: none; text-align: left; width: 100%;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(124,110,245,0.25); }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-footer { margin-top: auto; font-size: 12px; color: var(--text3); font-family: var(--mono); }
+
+  /* MAIN */
+  .main { padding: 2rem; overflow-x: hidden; }
+
+  /* SECTION */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* PAGE HEADER */
+  .page-header { margin-bottom: 2rem; }
+  .page-header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+  .page-header p { color: var(--text2); font-size: 14px; margin-top: 4px; font-family: var(--mono); }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .card-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text2); }
+
+  /* GRID LAYOUTS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .stack { display: flex; flex-direction: column; gap: 1rem; }
+
+  /* BTN */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px;
+    font-family: var(--sans); font-size: 13px; font-weight: 700;
+    cursor: pointer; border: none; transition: all 0.15s;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+
+  /* PROGRESS BAR */
+  .progress-wrap { margin: 0.75rem 0 0.25rem; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); font-family: var(--mono); margin-bottom: 6px; }
+  .progress-track {
+    height: 6px; background: var(--surface3); border-radius: 99px; overflow: hidden;
+    position: relative;
+  }
+  .progress-bar {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), #a78bfa);
+    transition: width 0.4s ease;
+  }
+  .progress-bar.green { background: linear-gradient(90deg, var(--green), #34d399); }
+  .progress-bar.amber { background: linear-gradient(90deg, var(--amber), #fbbf24); }
+
+  /* CHECKBOX DAYS */
+  .days-row {
+    display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px;
+  }
+  .day-box {
+    width: 20px; height: 20px; border-radius: 4px;
+    border: 1px solid var(--border2);
+    background: var(--surface3);
+    cursor: pointer; transition: all 0.1s;
+    position: relative;
+  }
+  .day-box.checked { background: var(--accent); border-color: var(--accent); }
+  .day-box.checked::after {
+    content: '✓';
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: white;
+  }
+  .day-box.missed { background: var(--red-dim); border-color: rgba(248,113,113,0.3); }
+  .day-box.missed::after {
+    content: '✗';
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--red);
+  }
+  .day-box.today { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+
+  /* TAG */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px; border-radius: 99px;
+    font-size: 11px; font-weight: 700; font-family: var(--mono);
+  }
+  .tag-purple { background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(124,110,245,0.2); }
+  .tag-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(63,207,142,0.2); }
+  .tag-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+  .tag-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+  .tag-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    width: 480px; max-width: 95vw;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 1.25rem; }
+  .form-group { margin-bottom: 1rem; }
+  .form-label { font-size: 12px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; display: block; }
+  .form-input {
+    width: 100%; padding: 10px 12px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 8px; color: var(--text);
+    font-family: var(--sans); font-size: 14px;
+    outline: none; transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  textarea.form-input { resize: vertical; min-height: 80px; }
+  select.form-input { cursor: pointer; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; }
+
+  /* STREAK */
+  .streak-num { font-size: 32px; font-weight: 800; font-family: var(--mono); color: var(--accent); }
+  .streak-label { font-size: 12px; color: var(--text2); font-family: var(--mono); }
+
+  /* STAT BOX */
+  .stat-box {
+    background: var(--surface2); border-radius: var(--radius);
+    padding: 1rem; text-align: center;
+  }
+  .stat-num { font-size: 24px; font-weight: 800; font-family: var(--mono); }
+  .stat-lbl { font-size: 11px; color: var(--text2); font-family: var(--mono); margin-top: 2px; }
+
+  /* PROJECT CARD */
+  .project-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .project-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), #a78bfa);
+  }
+  .project-card.done::before { background: linear-gradient(90deg, var(--green), #34d399); }
+  .project-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .project-meta { font-size: 12px; color: var(--text2); font-family: var(--mono); margin-bottom: 10px; }
+  .project-actions { display: flex; gap: 6px; margin-top: 10px; }
+
+  /* SKILL BAR */
+  .skill-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .skill-item:last-child { border-bottom: none; }
+  .skill-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .skill-name { font-size: 14px; font-weight: 700; }
+
+  /* BLOG LIST */
+  .blog-item {
+    padding: 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 8px;
+  }
+  .blog-item:hover { border-color: var(--border2); background: var(--surface2); }
+  .blog-title { font-size: 14px; font-weight: 700; }
+  .blog-date { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-top: 3px; }
+  .blog-tag { margin-top: 6px; }
+
+  /* DAILY SECTION */
+  .daily-goal {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    transition: all 0.15s;
+  }
+  .daily-goal.done { opacity: 0.5; }
+  .daily-check {
+    width: 18px; height: 18px; border-radius: 4px;
+    border: 1.5px solid var(--border2);
+    background: transparent; cursor: pointer; flex-shrink: 0;
+    position: relative; margin-top: 1px;
+  }
+  .daily-check.checked { background: var(--accent); border-color: var(--accent); }
+  .daily-check.checked::after {
+    content: '✓'; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: white;
+  }
+  .daily-text { font-size: 14px; flex: 1; }
+  .daily-sub { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-top: 2px; }
+
+  /* TOP BAR */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem; padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .date-display { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+
+  /* POPUP */
+  .popup-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 90;
+    align-items: center; justify-content: center;
+  }
+  .popup-overlay.open { display: flex; }
+  .popup {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    width: 420px; max-width: 95vw;
+    max-height: 80vh; overflow-y: auto;
+  }
+
+  /* COMPLETED SKILLS SECTION */
+  .skills-grid { display: flex; flex-direction: column; gap: 0; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { position: relative; height: auto; flex-direction: row; overflow-x: auto; padding: 1rem; gap: 1rem; border-right: none; border-bottom: 1px solid var(--border); }
+    .logo { display: none; }
+    .nav { flex-direction: row; }
+    .sidebar-footer { display: none; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+
+  .badge-importance {
+    font-size: 10px; font-family: var(--mono); font-weight: 700;
+    padding: 1px 6px; border-radius: 4px;
+  }
+  .imp-high { background: rgba(248,113,113,0.15); color: var(--red); }
+  .imp-med { background: var(--amber-dim); color: var(--amber); }
+  .imp-low { background: var(--green-dim); color: var(--green); }
+
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text3); }
+  .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
+  .empty-state p { font-size: 13px; font-family: var(--mono); }
+
+  .notice { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-family: var(--mono); }
+  .notice-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+  .notice-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(63,207,142,0.2); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">DEV<span>_</span>OS<br><span>// task manager</span></div>
+  <nav class="nav">
+    <button class="nav-item active" onclick="switchSection('dashboard')">
+      <span class="nav-icon">⚡</span> Dashboard
+    </button>
+    <button class="nav-item" onclick="switchSection('projects')">
+      <span class="nav-icon">📦</span> Projects
+    </button>
+    <button class="nav-item" onclick="switchSection('skills')">
+      <span class="nav-icon">🧠</span> Skills
+    </button>
+    <button class="nav-item" onclick="switchSection('goals')">
+      <span class="nav-icon">🎯</span> Daily Goals
+    </button>
+    <button class="nav-item" onclick="switchSection('blogs')">
+      <span class="nav-icon">📝</span> Blog Log
+    </button>
+    <button class="nav-item" onclick="switchSection('completed')">
+      <span class="nav-icon">✅</span> Completed
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    portfolio v1.0<br>github pages ready
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div>
+      <div id="greeting" style="font-size:16px;font-weight:700;">Good morning 👋</div>
+      <div class="date-display" id="dateDisplay"></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="openBlogPopup()">📝 Last 10 Blogs</button>
+      <button class="btn btn-primary btn-sm" onclick="openQuickAdd()">+ Add</button>
+    </div>
+  </div>
+
+  <!-- ======================== DASHBOARD ======================== -->
+  <section id="section-dashboard" class="section active">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <p>// your progress at a glance</p>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="grid-3" style="margin-bottom:1.5rem;">
+      <div class="stat-box">
+        <div class="stat-num" style="color:var(--accent);" id="stat-projects">0</div>
+        <div class="stat-lbl">active projects</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" style="color:var(--green);" id="stat-skills">0</div>
+        <div class="stat-lbl">skills in progress</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" style="color:var(--amber);" id="stat-streak">0</div>
+        <div class="stat-lbl">day streak 🔥</div>
+      </div>
+    </div>
+
+    <!-- ACTIVE PROJECTS -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-header">
+        <div class="card-title">Active Projects</div>
+        <button class="btn btn-ghost btn-sm" onclick="switchSection('projects')">View all →</button>
+      </div>
+      <div id="dash-projects">
+        <div class="empty-state"><div class="icon">📦</div><p>No active projects yet. Add one!</p></div>
+      </div>
+    </div>
+
+    <!-- SKILLS IN PROGRESS -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-header">
+        <div class="card-title">Skills in Progress</div>
+        <button class="btn btn-ghost btn-sm" onclick="switchSection('skills')">View all →</button>
+      </div>
+      <div id="dash-skills">
+        <div class="empty-state"><div class="icon">🧠</div><p>No skills being tracked yet.</p></div>
+      </div>
+    </div>
+
+    <!-- TODAY'S GOALS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Today's Goals</div>
+        <button class="btn btn-ghost btn-sm" onclick="switchSection('goals')">Manage →</button>
+      </div>
+      <div id="dash-goals">
+        <div class="empty-state"><div class="icon">🎯</div><p>No goals set for today.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== PROJECTS ======================== -->
+  <section id="section-projects" class="section">
+    <div class="page-header">
+      <h1>Projects</h1>
+      <p>// track what you're building</p>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:1.5rem;">
+      <button class="btn btn-primary" onclick="openModal('project')">+ New Project</button>
+    </div>
+    <div id="projects-list" class="stack">
+      <div class="empty-state"><div class="icon">📦</div><p>No projects yet. Start building something!</p></div>
+    </div>
+  </section>
+
+  <!-- ======================== SKILLS ======================== -->
+  <section id="section-skills" class="section">
+    <div class="page-header">
+      <h1>Skills</h1>
+      <p>// show up every day</p>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:1.5rem;">
+      <button class="btn btn-primary" onclick="openModal('skill')">+ Track New Skill</button>
+    </div>
+    <div id="skills-list" class="stack">
+      <div class="empty-state"><div class="icon">🧠</div><p>No skills tracked yet.</p></div>
+    </div>
+  </section>
+
+  <!-- ======================== DAILY GOALS ======================== -->
+  <section id="section-goals" class="section">
+    <div class="page-header">
+      <h1>Daily Goals</h1>
+      <p>// what matters today</p>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:1.5rem;">
+      <button class="btn btn-primary" onclick="openModal('goal')">+ Add Goal</button>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-header">
+        <div class="card-title">🔴 High Priority</div>
+      </div>
+      <div id="goals-high"></div>
+    </div>
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-header">
+        <div class="card-title">🟡 Medium Priority</div>
+      </div>
+      <div id="goals-med"></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🟢 Low Priority</div>
+      </div>
+      <div id="goals-low"></div>
+    </div>
+  </section>
+
+  <!-- ======================== BLOG LOG ======================== -->
+  <section id="section-blogs" class="section">
+    <div class="page-header">
+      <h1>Blog Log</h1>
+      <p>// concepts you've captured</p>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:1.5rem;">
+      <button class="btn btn-primary" onclick="openModal('blog')">+ Log Concept</button>
+    </div>
+    <div id="blogs-list" class="stack">
+      <div class="empty-state"><div class="icon">📝</div><p>No blog entries yet. Write something!</p></div>
+    </div>
+  </section>
+
+  <!-- ======================== COMPLETED ======================== -->
+  <section id="section-completed" class="section">
+    <div class="page-header">
+      <h1>Completed</h1>
+      <p>// your wins, forever</p>
+    </div>
+    <div class="grid-2" style="margin-bottom:1.5rem;">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:1rem;">🏆 Completed Projects</div>
+        <div id="completed-projects">
+          <div class="empty-state"><p>No completed projects yet.</p></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:1rem;">⚡ Mastered Skills</div>
+        <div id="completed-skills">
+          <div class="empty-state"><p>No mastered skills yet.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- QUICK ADD -->
+<div class="modal-overlay" id="modal-quickadd">
+  <div class="modal" style="width:320px;">
+    <div class="modal-title">Quick Add</div>
+    <div class="stack">
+      <button class="btn btn-ghost" style="justify-content:flex-start;gap:12px;" onclick="closeModal('quickadd');openModal('project')">📦 New Project</button>
+      <button class="btn btn-ghost" style="justify-content:flex-start;gap:12px;" onclick="closeModal('quickadd');openModal('skill')">🧠 Track Skill</button>
+      <button class="btn btn-ghost" style="justify-content:flex-start;gap:12px;" onclick="closeModal('quickadd');openModal('goal')">🎯 Add Daily Goal</button>
+      <button class="btn btn-ghost" style="justify-content:flex-start;gap:12px;" onclick="closeModal('quickadd');openModal('blog')">📝 Log Concept</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('quickadd')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div class="modal-overlay" id="modal-project">
+  <div class="modal">
+    <div class="modal-title">New Project</div>
+    <div class="form-group">
+      <label class="form-label">Project Title</label>
+      <input class="form-input" id="p-title" placeholder="e.g. Portfolio Website" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-input" id="p-desc" placeholder="What are you building?"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tech Stack</label>
+        <input class="form-input" id="p-tech" placeholder="React, Node.js..." />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Duration (days)</label>
+        <input class="form-input" id="p-days" type="number" min="1" max="365" placeholder="7" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">GitHub Link</label>
+        <input class="form-input" id="p-github" placeholder="https://github.com/..." />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Importance</label>
+        <select class="form-input" id="p-importance">
+          <option value="high">High</option>
+          <option value="med" selected>Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('project')">Cancel</button>
+      <button class="btn btn-primary" onclick="addProject()">Add Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- SKILL MODAL -->
+<div class="modal-overlay" id="modal-skill">
+  <div class="modal">
+    <div class="modal-title">Track New Skill</div>
+    <div class="form-group">
+      <label class="form-label">Skill Name</label>
+      <input class="form-input" id="s-name" placeholder="e.g. TypeScript, System Design..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <input class="form-input" id="s-cat" placeholder="e.g. Frontend, Backend, DSA..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Target Days (commitment)</label>
+      <input class="form-input" id="s-days" type="number" min="1" max="365" placeholder="30" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('skill')">Cancel</button>
+      <button class="btn btn-primary" onclick="addSkill()">Start Tracking</button>
+    </div>
+  </div>
+</div>
+
+<!-- GOAL MODAL -->
+<div class="modal-overlay" id="modal-goal">
+  <div class="modal">
+    <div class="modal-title">Add Daily Goal</div>
+    <div class="form-group">
+      <label class="form-label">Goal</label>
+      <input class="form-input" id="g-text" placeholder="e.g. Practice LeetCode for 1 hour" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Linked To (optional)</label>
+      <input class="form-input" id="g-link" placeholder="Project or skill this supports" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Priority</label>
+      <select class="form-input" id="g-priority">
+        <option value="high">High</option>
+        <option value="med" selected>Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('goal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addGoal()">Add Goal</button>
+    </div>
+  </div>
+</div>
+
+<!-- BLOG MODAL -->
+<div class="modal-overlay" id="modal-blog">
+  <div class="modal">
+    <div class="modal-title">Log Concept / Blog Entry</div>
+    <div class="form-group">
+      <label class="form-label">Title</label>
+      <input class="form-input" id="b-title" placeholder="e.g. How useEffect works under the hood" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Concept / Notes</label>
+      <textarea class="form-input" id="b-content" placeholder="What did you learn? Key takeaways..." style="min-height:120px;"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Topic Tag</label>
+        <input class="form-input" id="b-tag" placeholder="React, Python, DSA..." />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select class="form-input" id="b-type">
+          <option value="concept">Concept</option>
+          <option value="project">Project Note</option>
+          <option value="daily">Daily Learning</option>
+          <option value="insight">Insight</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('blog')">Cancel</button>
+      <button class="btn btn-primary" onclick="addBlog()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- BLOG POPUP (last 10) -->
+<div class="popup-overlay" id="popup-blogs">
+  <div class="popup">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <div style="font-size:16px;font-weight:800;">📝 Last 10 Concepts</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeBlogPopup()">✕</button>
+    </div>
+    <div id="popup-blog-list"></div>
+  </div>
+</div>
+
+<!-- BLOG DETAIL POPUP -->
+<div class="popup-overlay" id="popup-blog-detail">
+  <div class="popup">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <div style="font-size:16px;font-weight:800;" id="blog-detail-title"></div>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('popup-blog-detail').classList.remove('open')">✕</button>
+    </div>
+    <div id="blog-detail-content"></div>
+  </div>
+</div>
+
+<script>
+// ==================== DATA ====================
+const KEY = 'devos_data_v2';
+
+function loadData() {
+  try {
+    return JSON.parse(localStorage.getItem(KEY)) || { projects: [], skills: [], goals: [], blogs: [], lastStreakDate: '', streak: 0 };
+  } catch { return { projects: [], skills: [], goals: [], blogs: [], lastStreakDate: '', streak: 0 }; }
+}
+
+function saveData(d) {
+  localStorage.setItem(KEY, JSON.stringify(d));
+}
+
+let data = loadData();
+
+// ==================== UTILS ====================
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function formatDate(d) {
+  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function daysBetween(a, b) {
+  return Math.floor((new Date(b) - new Date(a)) / 86400000);
+}
+
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+function daysLabel(n) { return n === 1 ? '1 day' : n + ' days'; }
+
+// ==================== NAV ====================
+function switchSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  const btns = document.querySelectorAll('.nav-item');
+  btns.forEach(b => { if (b.textContent.toLowerCase().includes(id.slice(0,4))) b.classList.add('active'); });
+  renderAll();
+}
+
+// ==================== MODALS ====================
+function openModal(id) {
+  document.getElementById('modal-' + id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById('modal-' + id).classList.remove('open');
+}
+function openQuickAdd() { openModal('quickadd'); }
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay, .popup-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) { el.classList.remove('open'); } });
+});
+
+// ==================== PROJECTS ====================
+function addProject() {
+  const title = document.getElementById('p-title').value.trim();
+  const days = parseInt(document.getElementById('p-days').value) || 7;
+  if (!title) { alert('Please enter a project title'); return; }
+  const proj = {
+    id: genId(),
+    title,
+    desc: document.getElementById('p-desc').value.trim(),
+    tech: document.getElementById('p-tech').value.trim(),
+    days,
+    github: document.getElementById('p-github').value.trim(),
+    importance: document.getElementById('p-importance').value,
+    startDate: today(),
+    checkedDays: [],
+    done: false
+  };
+  data.projects.unshift(proj);
+  saveData(data);
+  closeModal('project');
+  clearForm(['p-title','p-desc','p-tech','p-days','p-github']);
+  renderAll();
+}
+
+function toggleProjectDay(id, dayIdx) {
+  const proj = data.projects.find(p => p.id === id);
+  if (!proj) return;
+  const key = dayIdx.toString();
+  if (proj.checkedDays.includes(key)) {
+    proj.checkedDays = proj.checkedDays.filter(d => d !== key);
+  } else {
+    proj.checkedDays.push(key);
+  }
+  if (proj.checkedDays.length >= proj.days && !proj.done) {
+    if (confirm('🎉 All days checked! Mark project as DONE?')) {
+      proj.done = true;
+    }
+  }
+  saveData(data);
+  renderAll();
+}
+
+function deleteProject(id) {
+  if (!confirm('Delete this project?')) return;
+  data.projects = data.projects.filter(p => p.id !== id);
+  saveData(data);
+  renderAll();
+}
+
+function renderProjectCard(proj, compact = false) {
+  const pct = Math.min(100, Math.round((proj.checkedDays.length / proj.days) * 100));
+  const impClass = { high: 'imp-high', med: 'imp-med', low: 'imp-low' }[proj.importance];
+  const daysElapsed = daysBetween(proj.startDate, today());
+
+  let daysHtml = '';
+  if (!compact) {
+    daysHtml = '<div class="days-row">';
+    for (let i = 0; i < proj.days; i++) {
+      const checked = proj.checkedDays.includes(i.toString());
+      const isToday = i === daysElapsed;
+      const missed = !checked && i < daysElapsed;
+      let cls = 'day-box';
+      if (checked) cls += ' checked';
+      else if (isToday) cls += ' today';
+      else if (missed) cls += ' missed';
+      daysHtml += `<div class="${cls}" onclick="toggleProjectDay('${proj.id}',${i})" title="Day ${i+1}"></div>`;
+    }
+    daysHtml += '</div>';
+  }
+
+  const missedCount = proj.days > 0 ? Array.from({length: Math.min(daysElapsed, proj.days)}, (_,i) => i).filter(i => !proj.checkedDays.includes(i.toString())).length : 0;
+
+  return `
+    <div class="project-card ${proj.done ? 'done' : ''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+            <div class="project-title">${proj.title}</div>
+            <span class="badge-importance ${impClass}">${proj.importance.toUpperCase()}</span>
+            ${proj.done ? '<span class="tag tag-green">DONE</span>' : ''}
+          </div>
+          <div class="project-meta">${proj.tech || 'No stack listed'} · ${daysLabel(proj.days)} · started ${formatDate(proj.startDate)}</div>
+          ${proj.desc ? `<div style="font-size:13px;color:var(--text2);margin-bottom:8px;">${proj.desc}</div>` : ''}
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Progress</span><span>${pct}% · ${proj.checkedDays.length}/${proj.days} days</span></div>
+        <div class="progress-track"><div class="progress-bar ${proj.done ? 'green' : ''}" style="width:${pct}%"></div></div>
+      </div>
+      ${!compact ? daysHtml : ''}
+      ${missedCount > 0 && !proj.done && !compact ? `<div class="notice notice-amber" style="margin-top:8px;font-size:11px;">⚠ ${missedCount} missed day${missedCount > 1 ? 's' : ''} before today</div>` : ''}
+      ${!compact ? `
+      <div class="project-actions">
+        ${proj.github ? `<a href="${proj.github}" target="_blank"><button class="btn btn-ghost btn-sm">GitHub ↗</button></a>` : ''}
+        ${!proj.done ? `<button class="btn btn-ghost btn-sm" onclick="markProjectDone('${proj.id}')">Mark Done</button>` : ''}
+        <button class="btn btn-danger btn-sm" onclick="deleteProject('${proj.id}')">Delete</button>
+      </div>` : ''}
+    </div>
+  `;
+}
+
+function markProjectDone(id) {
+  const proj = data.projects.find(p => p.id === id);
+  if (proj) { proj.done = true; saveData(data); renderAll(); }
+}
+
+function renderProjects() {
+  const el = document.getElementById('projects-list');
+  const active = data.projects.filter(p => !p.done).sort((a,b) => { const o = {high:0,med:1,low:2}; return o[a.importance]-o[b.importance]; });
+  if (!active.length) { el.innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>No active projects. Add one!</p></div>'; return; }
+  el.innerHTML = active.map(p => renderProjectCard(p)).join('');
+}
+
+// ==================== SKILLS ====================
+function addSkill() {
+  const name = document.getElementById('s-name').value.trim();
+  const days = parseInt(document.getElementById('s-days').value) || 30;
+  if (!name) { alert('Please enter a skill name'); return; }
+  const skill = {
+    id: genId(),
+    name,
+    category: document.getElementById('s-cat').value.trim(),
+    days,
+    startDate: today(),
+    checkedDays: [],
+    done: false
+  };
+  data.skills.push(skill);
+  saveData(data);
+  closeModal('skill');
+  clearForm(['s-name','s-cat','s-days']);
+  renderAll();
+  updateStreak();
+}
+
+function toggleSkillDay(id, dayIdx) {
+  const skill = data.skills.find(s => s.id === id);
+  if (!skill) return;
+  const key = dayIdx.toString();
+  if (skill.checkedDays.includes(key)) {
+    skill.checkedDays = skill.checkedDays.filter(d => d !== key);
+  } else {
+    skill.checkedDays.push(key);
+    updateStreak();
+  }
+  if (skill.checkedDays.length >= skill.days && !skill.done) {
+    if (confirm(`🎉 You've completed ${skill.days} days of ${skill.name}! Mark as mastered?`)) {
+      skill.done = true;
+    }
+  }
+  saveData(data);
+  renderAll();
+}
+
+function deleteSkill(id) {
+  if (!confirm('Delete this skill?')) return;
+  data.skills = data.skills.filter(s => s.id !== id);
+  saveData(data);
+  renderAll();
+}
+
+function renderSkillCard(skill, compact = false) {
+  const pct = Math.min(100, Math.round((skill.checkedDays.length / skill.days) * 100));
+  const daysElapsed = daysBetween(skill.startDate, today());
+
+  let daysHtml = '';
+  if (!compact) {
+    daysHtml = '<div class="days-row">';
+    for (let i = 0; i < Math.min(skill.days, 60); i++) {
+      const checked = skill.checkedDays.includes(i.toString());
+      const isToday = i === daysElapsed;
+      const missed = !checked && i < daysElapsed;
+      let cls = 'day-box';
+      if (checked) cls += ' checked';
+      else if (isToday) cls += ' today';
+      else if (missed) cls += ' missed';
+      daysHtml += `<div class="${cls}" onclick="toggleSkillDay('${skill.id}',${i})" title="Day ${i+1}"></div>`;
+    }
+    if (skill.days > 60) daysHtml += `<span style="font-size:11px;color:var(--text3);font-family:var(--mono);">+${skill.days-60} more</span>`;
+    daysHtml += '</div>';
+  }
+
+  const todayChecked = skill.checkedDays.includes(daysElapsed.toString());
+  const missedCount = Array.from({length: Math.min(daysElapsed, skill.days)}, (_,i) => i).filter(i => !skill.checkedDays.includes(i.toString())).length;
+
+  return `
+    <div class="card ${skill.done ? '' : ''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+        <div style="flex:1;">
+          <div class="skill-top">
+            <div>
+              <div class="skill-name">${skill.name} ${skill.done ? '⚡' : ''}</div>
+              ${skill.category ? `<div style="font-size:11px;color:var(--text3);font-family:var(--mono);">${skill.category}</div>` : ''}
+            </div>
+            <div style="text-align:right;">
+              ${todayChecked && !compact ? '<span class="tag tag-green">TODAY ✓</span>' : (!compact && !skill.done ? '<span class="tag tag-amber">LOG TODAY</span>' : '')}
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>${skill.days}-day challenge</span><span>${pct}% · ${skill.checkedDays.length}/${skill.days} days</span></div>
+            <div class="progress-track"><div class="progress-bar green" style="width:${pct}%"></div></div>
+          </div>
+        </div>
+      </div>
+      ${!compact ? daysHtml : ''}
+      ${missedCount > 0 && !skill.done && !compact ? `<div class="notice notice-amber" style="margin-top:8px;font-size:11px;">⚠ ${missedCount} missed day${missedCount>1?'s':''}</div>` : ''}
+      ${!compact ? `
+      <div class="project-actions">
+        ${!skill.done ? `<button class="btn btn-ghost btn-sm" onclick="markSkillDone('${skill.id}')">Mark Mastered</button>` : ''}
+        <button class="btn btn-danger btn-sm" onclick="deleteSkill('${skill.id}')">Delete</button>
+      </div>` : ''}
+    </div>
+  `;
+}
+
+function markSkillDone(id) {
+  const skill = data.skills.find(s => s.id === id);
+  if (skill) { skill.done = true; saveData(data); renderAll(); }
+}
+
+function renderSkills() {
+  const el = document.getElementById('skills-list');
+  const active = data.skills.filter(s => !s.done);
+  if (!active.length) { el.innerHTML = '<div class="empty-state"><div class="icon">🧠</div><p>No skills tracked yet. Start a 30-day challenge!</p></div>'; return; }
+  el.innerHTML = active.map(s => renderSkillCard(s)).join('');
+}
+
+// ==================== GOALS ====================
+function addGoal() {
+  const text = document.getElementById('g-text').value.trim();
+  if (!text) { alert('Please enter a goal'); return; }
+  const goal = {
+    id: genId(),
+    text,
+    link: document.getElementById('g-link').value.trim(),
+    priority: document.getElementById('g-priority').value,
+    date: today(),
+    done: false
+  };
+  data.goals.unshift(goal);
+  saveData(data);
+  closeModal('goal');
+  clearForm(['g-text','g-link']);
+  renderAll();
+}
+
+function toggleGoal(id) {
+  const goal = data.goals.find(g => g.id === id);
+  if (goal) { goal.done = !goal.done; saveData(data); renderAll(); }
+}
+
+function deleteGoal(id) {
+  data.goals = data.goals.filter(g => g.id !== id);
+  saveData(data);
+  renderAll();
+}
+
+function renderGoalItem(goal) {
+  return `
+    <div class="daily-goal ${goal.done ? 'done' : ''}">
+      <div class="daily-check ${goal.done ? 'checked' : ''}" onclick="toggleGoal('${goal.id}')"></div>
+      <div style="flex:1;">
+        <div class="daily-text" style="${goal.done ? 'text-decoration:line-through;' : ''}">${goal.text}</div>
+        ${goal.link ? `<div class="daily-sub">↳ ${goal.link}</div>` : ''}
+        <div class="daily-sub">${formatDate(goal.date)}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="deleteGoal('${goal.id}')" style="flex-shrink:0;">✕</button>
+    </div>
+  `;
+}
+
+function renderGoals() {
+  const todayGoals = data.goals.filter(g => g.date === today());
+  ['high','med','low'].forEach(p => {
+    const el = document.getElementById('goals-' + p);
+    const items = todayGoals.filter(g => g.priority === p);
+    if (!items.length) {
+      el.innerHTML = '<div style="color:var(--text3);font-size:13px;font-family:var(--mono);padding:8px 0;">No ' + p + ' priority goals today</div>';
+    } else {
+      el.innerHTML = items.map(g => renderGoalItem(g)).join('');
+    }
+  });
+}
+
+// ==================== BLOGS ====================
+function addBlog() {
+  const title = document.getElementById('b-title').value.trim();
+  if (!title) { alert('Please enter a title'); return; }
+  const blog = {
+    id: genId(),
+    title,
+    content: document.getElementById('b-content').value.trim(),
+    tag: document.getElementById('b-tag').value.trim(),
+    type: document.getElementById('b-type').value,
+    date: today()
+  };
+  data.blogs.unshift(blog);
+  saveData(data);
+  closeModal('blog');
+  clearForm(['b-title','b-content','b-tag']);
+  renderAll();
+}
+
+function deleteBlog(id) {
+  data.blogs = data.blogs.filter(b => b.id !== id);
+  saveData(data);
+  renderAll();
+}
+
+function showBlogDetail(id) {
+  const blog = data.blogs.find(b => b.id === id);
+  if (!blog) return;
+  document.getElementById('blog-detail-title').textContent = blog.title;
+  const typeColors = {concept:'tag-purple',project:'tag-blue',daily:'tag-green',insight:'tag-amber'};
+  document.getElementById('blog-detail-content').innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:1rem;">
+      <span class="tag ${typeColors[blog.type]||'tag-purple'}">${blog.type}</span>
+      ${blog.tag ? `<span class="tag tag-blue">${blog.tag}</span>` : ''}
+      <span style="font-size:11px;color:var(--text3);font-family:var(--mono);align-self:center;">${formatDate(blog.date)}</span>
+    </div>
+    <div style="font-size:14px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">${blog.content || 'No notes added.'}</div>
+  `;
+  document.getElementById('popup-blog-detail').classList.add('open');
+}
+
+function renderBlogs() {
+  const el = document.getElementById('blogs-list');
+  if (!data.blogs.length) { el.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>No blog entries yet.</p></div>'; return; }
+  const typeColors = {concept:'tag-purple',project:'tag-blue',daily:'tag-green',insight:'tag-amber'};
+  el.innerHTML = data.blogs.map(b => `
+    <div class="blog-item" onclick="showBlogDetail('${b.id}')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+        <div class="blog-title">${b.title}</div>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();deleteBlog('${b.id}')">✕</button>
+      </div>
+      <div class="blog-date">${formatDate(b.date)}</div>
+      <div class="blog-tag">
+        <span class="tag ${typeColors[b.type]||'tag-purple'}">${b.type}</span>
+        ${b.tag ? `<span class="tag tag-blue" style="margin-left:4px;">${b.tag}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function openBlogPopup() {
+  const el = document.getElementById('popup-blog-list');
+  const last10 = data.blogs.slice(0, 10);
+  if (!last10.length) { el.innerHTML = '<div class="empty-state"><p>No blog entries yet.</p></div>'; }
+  else {
+    const typeColors = {concept:'tag-purple',project:'tag-blue',daily:'tag-green',insight:'tag-amber'};
+    el.innerHTML = last10.map(b => `
+      <div class="blog-item" onclick="closeBlogPopup();showBlogDetail('${b.id}')">
+        <div class="blog-title">${b.title}</div>
+        <div class="blog-date">${formatDate(b.date)}</div>
+        <div class="blog-tag"><span class="tag ${typeColors[b.type]||'tag-purple'}">${b.type}</span>${b.tag ? `<span class="tag tag-blue" style="margin-left:4px;">${b.tag}</span>` : ''}</div>
+      </div>
+    `).join('');
+  }
+  document.getElementById('popup-blogs').classList.add('open');
+}
+
+function closeBlogPopup() {
+  document.getElementById('popup-blogs').classList.remove('open');
+}
+
+// ==================== COMPLETED ====================
+function renderCompleted() {
+  const doneProjects = data.projects.filter(p => p.done);
+  const doneSkills = data.skills.filter(s => s.done);
+
+  const cp = document.getElementById('completed-projects');
+  if (!doneProjects.length) {
+    cp.innerHTML = '<div class="empty-state"><p>No completed projects yet.</p></div>';
+  } else {
+    cp.innerHTML = doneProjects.map(p => `
+      <div class="project-card done" style="margin-bottom:8px;">
+        <div class="project-title">🏆 ${p.title}</div>
+        <div class="project-meta">${p.tech || ''} · ${daysLabel(p.days)}</div>
+        ${p.github ? `<div style="margin-top:8px;"><a href="${p.github}" target="_blank"><button class="btn btn-ghost btn-sm">GitHub ↗</button></a></div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  const cs = document.getElementById('completed-skills');
+  if (!doneSkills.length) {
+    cs.innerHTML = '<div class="empty-state"><p>No mastered skills yet.</p></div>';
+  } else {
+    cs.innerHTML = doneSkills.map(s => `
+      <div class="card" style="margin-bottom:8px;">
+        <div style="font-weight:700;">⚡ ${s.name}</div>
+        <div style="font-size:12px;color:var(--text2);font-family:var(--mono);">${s.days}-day challenge · ${s.category || ''}</div>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-bar green" style="width:100%"></div></div>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard() {
+  // Stats
+  document.getElementById('stat-projects').textContent = data.projects.filter(p => !p.done).length;
+  document.getElementById('stat-skills').textContent = data.skills.filter(s => !s.done).length;
+  document.getElementById('stat-streak').textContent = data.streak || 0;
+
+  // Active projects (top 3 by importance)
+  const dp = document.getElementById('dash-projects');
+  const activeP = data.projects.filter(p => !p.done).sort((a,b) => {const o={high:0,med:1,low:2};return o[a.importance]-o[b.importance];}).slice(0, 3);
+  if (!activeP.length) {
+    dp.innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>No active projects yet. Add one!</p></div>';
+  } else {
+    dp.innerHTML = activeP.map(p => renderProjectCard(p, true)).join('');
+  }
+
+  // Active skills
+  const ds = document.getElementById('dash-skills');
+  const activeS = data.skills.filter(s => !s.done).slice(0, 3);
+  if (!activeS.length) {
+    ds.innerHTML = '<div class="empty-state"><div class="icon">🧠</div><p>No skills being tracked yet.</p></div>';
+  } else {
+    ds.innerHTML = activeS.map(s => renderSkillCard(s, true)).join('');
+  }
+
+  // Today's goals
+  const dg = document.getElementById('dash-goals');
+  const todayGoals = data.goals.filter(g => g.date === today()).slice(0, 5);
+  if (!todayGoals.length) {
+    dg.innerHTML = '<div class="empty-state"><div class="icon">🎯</div><p>No goals for today. Add some!</p></div>';
+  } else {
+    dg.innerHTML = todayGoals.map(g => renderGoalItem(g)).join('');
+  }
+}
+
+// ==================== STREAK ====================
+function updateStreak() {
+  const t = today();
+  if (data.lastStreakDate !== t) {
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+    const yStr = yesterday.toISOString().split('T')[0];
+    if (data.lastStreakDate === yStr) {
+      data.streak = (data.streak || 0) + 1;
+    } else if (data.lastStreakDate !== t) {
+      data.streak = 1;
+    }
+    data.lastStreakDate = t;
+    saveData(data);
+  }
+}
+
+// ==================== RENDER ALL ====================
+function renderAll() {
+  renderDashboard();
+  renderProjects();
+  renderSkills();
+  renderGoals();
+  renderBlogs();
+  renderCompleted();
+}
+
+// ==================== HELPERS ====================
+function clearForm(ids) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+function setDateDisplay() {
+  const now = new Date();
+  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('dateDisplay').textContent = now.toLocaleDateString('en-IN', opts);
+  const h = now.getHours();
+  const greet = h < 12 ? 'Good morning 👋' : h < 17 ? 'Good afternoon ☀️' : 'Good evening 🌙';
+  document.getElementById('greeting').textContent = greet;
+}
+
+// ==================== INIT ====================
+setDateDisplay();
+updateStreak();
+renderAll();
+
+// Keyboard shortcut: Escape closes modals
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open, .popup-overlay.open').forEach(el => el.classList.remove('open'));
+  }
+});
+</script>
+</body>
+</html>
